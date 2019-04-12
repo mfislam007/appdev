@@ -5,8 +5,19 @@
 #include <time.h>
 #include "screen.h"	// for user-defined header, use double quotes
 #include "sound.h"
-int main(){
+#include "comm.h"
 
+int main(int argc, char **argv){
+	if(argc == 2) {
+		int ch;
+		printf("how many channels? (1:mono, 2:stereo):");
+		scanf("%d", &ch);
+		float duration;
+		printf("how long is the test tone? (1-10 sec):");
+		scanf("%f",&duration);
+                testTone(ch, atoi(argv[1]), duration);
+		return 0;
+	}
 	FILE *f;
 	short sd[RATE];	// for all samples in 1 sec
 	
@@ -31,7 +42,8 @@ int main(){
 		displayWAVHDR(h);	// show wav  header infformation
 		fread(&sd, sizeof(sd), 1, f);
 		displayWAVDATA(sd);
-		fclose(f); 	// close the opened file 
+		fclose(f); 	// close the opened file
+		sendDATA(sd); 
 	}
 	resetColors();
 }
