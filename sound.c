@@ -91,45 +91,49 @@ void fillID (char *dst, const char *m){
 
 void testTone(int c, int f, float d){
 	if(f<30 || f>16000){
-	printf("frequency is out of range.\n");
-	return;
+		printf("frequency is out of range.\n");
+		return;
 	}
 	if(c<1 || c>2){
-        printf("number of channel is not ok\n");
-        return;
+	        printf("number of channel is not ok\n");
+        	return;
 	}
 	if(f<1 || d>10){
-        printf("duration is not ok.\n");
-        return;
+	        printf("duration is not ok.\n");
+        	return;
         }
 	struct WAVHDR h; // we need to prepare a WAV header
+	int samples = d*44100;
+
 	fillID(h.ChunkID,"RIFF");
 	fillID(h.Format,"WAVE");
-	fillID(h.Subchunk1ID,"fmt");
+	fillID(h.Subchunk1ID,"fmt ");
 	fillID(h.Subchunk2ID,"data");
 	h.Subchunk1Size = 16; // for PMC
 	h.AudioFormat = 1;
 	h.NumChannels = c;
 	h.SampleRate = 44100;
 	h.BitsPerSample = 16;
-	if(c==1){// for mono channel
-		h.ByteRate = h.SampleRate*c*h.BitsPerSample;
-		h.BlockAlign = c * h.BitsPerSample / 16;
-		h.Subchunk2Size = d*h.SampleRate*h.BlockAlign;
-		h.ChunkSize = h.Subchunk2Size + 36; 
-	}  
+	h.ByteRate = h.SampleRate*c*h.BitsPerSample/8;
+	h.BlockAlign = c * h.BitsPerSample / 8;
+	h.Subchunk2Size = samples *h.BlockAlign;
+	h.ChunkSize = h.Subchunk2Size + 36; 
 	// prepare sound data
-	short data[441000];//d*h.SampleRate];
-	for(int i=0;i<d*h.SampleRate;i++){
-		data[i] = 32768*sin(2*PI*i/44100);
-	}
 	FILE *fp = fopen("testTone.wav", "w");
 	if(fp== NULL){
 		printf("we can not open the file\n");
 		return;
 	}
 	fwrite(&h, sizeof(h),1,fp); // wite the header
-	fwrite(data, d*h.SampleRate*sizeof(short),1,fp);
+	for(int i=0; i<samples ;i++){
+		short data = 32767.0*sin(2*PI*i*f/44100);
+		fwrite(&data, sizeof(short),1,fp);
+		if(c==2){
+			short dR = 32767.0*sin(2*PI*i*f/2/44100);
+			fwrite(&dR, sizeof(short),1,fp);
+
+		}
+	}
 	fclose(fp);
 	printf("test tone is generated!\n"); 
 }
