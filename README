@@ -1,2 +1,243 @@
-# this is the first version
-# curltest
+# This is the first version
+This project is to turn a Raspberry PI as an audio device. The device is able to 
+do 2 functions: as a sound collector and as a test- tone generator.
+
+Table of content
+	1.Configurations Instructions
+	2.Installation Instructions
+	3.Operating Instructions
+	4.File list (Manifest)
+	5.Copyright / copyleft
+	6.Contact Information
+	7.Credits and Acknowledgements
+
+1.Configuration Instructions
+
+The application is runniong on a Raspberry pi 3 model B.
+This pi should come with a USB sound card, a network connection, a microphone.
+
+1.1 Configure USB sound card as default audio device
+
+1.	RPi onboard sound card doesn.t have microphone interface. We have to change the default audio device to be USB sound card. 
+2.	Boot up RPi, and apply the USB sound card. Use .lsusb. command to check if your USB sound card is mounted:
+pi@raspberrypi:~ $ lsusb
+Bus 001 Device 004: ID 0d8c:000c C-Media Electronics, Inc. Audio Adapter
+Bus 001 Device 003: ID 0424:ec00 Standard Microsystems Corp. SMSC9512/9514 Fast Ethernet Adapter
+Bus 001 Device 002: ID 0424:9514 Standard Microsystems Corp.
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+
+3.	Use .sudo nano /etc/asound.conf.command and put following content to the file:
+pcm.!default {
+  type plug
+  slave {
+    pcm "hw:1,0"
+  }
+}
+ctl.!default {
+    type hw
+    card 1
+}
+
+4.	Go to your home directory. Use .nano .asoundrc. command and put the same content to the file.
+
+5.	Run .alsamixer. you should be able to see that USB sound card is the default audio device. For a more sensitive sound detection, it is better to maximize the volume of .Mic..
+.............................................. AlsaMixer v1.0.28 ...............................................
+. Card: C-Media USB Headphone Set                                                      F1:  Help               .
+. Chip: USB Mixer                                                                      F2:  System information .
+. View: F3:[Playback] F4: Capture  F5: All                                             F6:  Select sound card  .
+. Item: Headphone [dB gain: -20.13, -20.13]                                            Esc: Exit               .
+.                                                                                                              .
+.                                                                                                              .
+.                                  ....               ....                                                     .
+.                                  .  .               .  .                                                     .
+.                                  .  .               .  .                                                     .
+.                                  .  .               .  .                                                     .
+.                                  .  .               .  .                                                     .
+.                                  .  .               .  .                                                     .
+.                                  .  .               .  .                                                     .
+.                                  .  .               ....                                                     .
+.                                  .  .               ....                                                     .
+.                                  .  .               ....                                                     .
+.                                  .  .               ....                                                     .
+.                                  .  .               ....                                                     .
+.                                  ....               ....                                                     .
+.                                  ....               ....                                                     .
+.                                  ....               ....               ....                                  .
+.                                  .OO.               .MM.               .OO.                                  .
+.                                  ....               ....               ....                                  .
+.                                 19<>19               52                                                      .
+.                          <    Headphone     >       Mic         Auto Gain Control                            .
+.                                                                                                              .
+.                                                                                                              .
+................................................................................................................
+
+Fix the Bug of arecord
+1.	The newest version of Raspbian (a.k.a. Jessie) comes with a new version of alsa-utils (1.0.28), which has a bug while recording: it doesn.t stop even a '.duration' switch is given, and generates lots of useless audio files. To fix this problem, we have to downgrade alsa-util to an earlier version (1.0.25).
+
+2.	Use .sudo nano /etc/apt/sources.list. command and add the last line:
+deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi
+# Uncomment line below then 'apt-get update' to enable 'apt-get source'
+#deb-src http://archive.raspbian.org/raspbian/ jessie main contrib non-free rpi
+deb http://mirrordirector.raspbian.org/raspbian/ wheezy main contrib non-free rpi
+
+3.	Run .sudo apt-get update.
+
+4.	Run .sudo aptitude versions alsa-utils. to check if version 1.0.25 of alsa-util is available:
+pi@raspberrypi:~ $ sudo aptitude versions alsa-utils
+Package alsa-utils:
+i   1.0.25-4                                    oldstable                                 500
+p   1.0.28-1                                    stable                                    500
+
+5.	Run .sudo apt-get install alsa-utils=1.0.25-4. to downgrade.
+
+6.	Reboot (if necessary)
+
+7.	Run .arecord -r44100 -c1 -f S16_LE -d5 test.wav. to test that your microphone is working. You should see a .test.wav. file in the current folder.
+
+8.	Put earphone on the USB sound card. Run .aplay test.wav. to check that your recording is okay.
+
+
+1.2 Install Libcurl library
+
+1.	First use command "ls /usr/include/curl" or "ls /usr/include/arm-linux-gnueabihf/curl" to identify that libcurl library is installed.
+
+2.	If the folder doesn.t exist. Run .sudo apt-get update. to update the application list.
+
+3.	Run .sudo apt-get install libcurl3. to install the libcurl3.
+
+4.	Run .sudo apt-get install libcurl4-openssl-dev. to install the development API of libcurl4.
+
+2. Installations Instructions
+
+2.1 SD-card preparation
+
+We get a 16GB microSD card for free from this course. However, the SD card has no operating system pre-installed. You have to do this at home as first homework.
+
+1.	Get a laptop/desktop PC with SD-card slot. It may look like as the following picture.
+ 
+2.	If your Laptop/PC does not come with SD-card slot, you need to get an external card-reader and attach it to your PC USB port. A card-reader may look like as following picture.
+ 
+3.	Insert micro-SD card into SD-card adapter. The adapter is in the same package as micro-SD card.
+ 
+4.	Insert SD-card adapter into the SD-card slot of your PC or card-reader. The system will inform you a USB storage device is available.
+5.	Go to website: https://www.raspberrypi.org/downloads/noobs/ and download .Noobs. image. Please download the ZIP file. This file is over 1GB and take a while to download.
+6.	Open two .Windows Explorer. windows. Window 1 goes to your .download. folder and open the ZIP file .NOOBS_v3_0_0.zip.. It will show following contents:
+ 
+7.	The 2nd Explorer window is located to your SD-card. Usually it is D:, E: or F: drive, depending on your system partition.
+8.	Copy everything from Explorer Window 1 to Window 2. This may take a few minutes.
+9.	Once copy is complete, verify that two Explorer windows have the same content.
+ 
+10.	Remove the USB device (SD-card) safely from your PC system.
+
+Required software:
+	RPi files ( RPi)
+
+	Server files (Server)
+
+	PuTTY ( MOC)
+
+	Curl library ( RPi)
+
+3.Operating Instructions
+	
+1.	Recording 1 second of audio into test.wav file using RPi
+
+2.	Outputting corresponding data in the console window (one of the following):
+
+3.	Header data and list of 80 RMS values ( DEBUG mode)	Sound decibel level bar chart ( non-DEBUG mode; one of the following):
+	Displayed using bar (.) symbol ( UNICODE mode)
+	Displayed using asterisk ( * ) symbol ( non-UNICODE mode)
+
+4.	#define DEBUG // Conditional compiling
+	UNICODE / non-UNICODE mode
+	The UNICODE constant is defined in screen.h. In order to set it off / on, add / remove two slashes (//) respectively in the beginning of the following line:
+
+5.	#define UNICODE // Conditional compiling
+	COMM / non-COMM mode
+	The COMM constant is defined in comm.h. In order to set it off / on, add / remove two slashes (//) respectively in the beginning of the following line:
+
+6.	#define DEBUG // Conditional compiling
+	Setting the servers URL address on the RPi side
+	When COMM mode is set, one should change the URL address in comm.h file in the following line:
+
+7.	#define URL "http://your.server.com/.../sound.php"
+	Launching
+	Launch the RPi
+
+8.	Connect to the RPi via PuTTY
+
+9.	Make the object files and the sound.a application by running the following command:
+
+10.	~$ make
+	Run the application by entering the following command:
+	
+11.	~$ ./sound.out
+	Go to the server's URL in the browser on the MOC
+	In order to stop the program, press Ctrl + C in the PuTTY console window.
+
+4.File list (Manifest)
+
+List:
+
+RPi :
+.c files :
+	comm.c
+	main.c
+	screen.c
+	sound.c
+	curltest.c
+.h files :
+	comm.h
+	screen.h
+	sound.h
+Server :
+Back-end files :
+	sound.php
+Others:
+	makefile
+	README.md
+
+5.Copyright / copyleft
+
+REMARK
+
+Even if there are no optional files, they will be created when the data transmission from RPi to the server starts.
+But, if one runs the program without data transmission from RPi, the chart will be drawn only if there is last_line.json file with valid data.
+
+Copyright and licensing information
+
+This project is licensed under the GNU General Public License. See the LICENSE for details
+
+LICENCE
+	
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY,WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS 
+IN THE SOFTWARE.
+
+6.Contact Information
+
+	Md Farukul Islam
+	Student 
+	Vaasa University Of Applied Science 
+	e1701764@edu.vamk.fi
+	
+
+7.Credits and Acknowledgements
+
+Instruction Provider:
+	Chao Gao
+	Principal Lecturer
+	Vaasa University of Applied Science
+	gc@puv.fi
+Authors:
+	Md Farukul Islam - Initial work - mfislam007(GitHub profile)
+Used resources:
+	Lactures and Instructions provided by Teachers, Wikimedia Foundation Inc., Wikipedia - Encyclopedia materials - wikipedia.org
+	https://github.com/calliope-mini/sound-test/blob/master/LICENSE.md	
